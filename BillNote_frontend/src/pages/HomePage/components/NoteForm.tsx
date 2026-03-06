@@ -39,6 +39,7 @@ import { Textarea } from '@/components/ui/textarea.tsx'
 import { noteStyles, noteFormats, videoPlatforms } from '@/constant/note.ts'
 import { fetchModels } from '@/services/model.ts'
 import { useNavigate } from 'react-router-dom'
+import SubscriptionPanel from '@/pages/HomePage/components/SubscriptionPanel'
 
 /* -------------------- 校验 Schema -------------------- */
 const formSchema = z
@@ -560,6 +561,9 @@ const NoteForm = () => {
           />
         </form>
       </Form>
+      <div className="mt-4">
+        <SubscriptionPanel />
+      </div>
     </div>
   )
 }

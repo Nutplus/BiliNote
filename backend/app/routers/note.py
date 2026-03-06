@@ -22,11 +22,13 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse
 import httpx
 from app.enmus.task_status_enums import TaskStatus
+from app.services.subscription import SubscriptionService
 
 # from app.services.downloader import download_raw_audio
 # from app.services.whisperer import transcribe_audio
 
 router = APIRouter()
+subscription_service = SubscriptionService()
 
 
 class RecordRequest(BaseModel):
@@ -61,6 +63,36 @@ class VideoRequest(BaseModel):
                                 message=NoteErrorEnum.PLATFORM_NOT_SUPPORTED.message)
 
         return v
+
+
+class SubscriptionLatestRequest(BaseModel):
+    channel_url: str
+    model_name: str
+    provider_id: str
+    quality: DownloadQuality = DownloadQuality.medium
+    style: Optional[str] = None
+    extras: Optional[str] = None
+
+
+class SubscriptionBatchRequest(SubscriptionLatestRequest):
+    count: int = 3
+
+    @field_validator("count")
+    def validate_count(cls, value):
+        if value <= 0:
+            raise ValueError("count 必须大于 0")
+        if value > 20:
+            raise ValueError("count 最大为 20")
+        return value
+
+
+class SubscriptionMergeRequest(BaseModel):
+    start_date: str
+    end_date: str
+    channel_url: Optional[str] = None
+    summarize: bool = True
+    model_name: Optional[str] = None
+    provider_id: Optional[str] = None
 
 
 NOTE_OUTPUT_DIR = os.getenv("NOTE_OUTPUT_DIR", "note_results")
@@ -244,3 +276,43 @@ async def image_proxy(request: Request, url: str):
             )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/subscription/pull_latest")
+def pull_latest_subscription_video(data: SubscriptionLatestRequest):
+    result = subscription_service.pull_latest_note(
+        channel_url=data.channel_url,
+        model_name=data.model_name,
+        provider_id=data.provider_id,
+        quality=data.quality,
+        style=data.style,
+        extras=data.extras,
+    )
+    return R.success(result)
+
+
+@router.post("/subscription/fetch_recent")
+def fetch_recent_subscription_videos(data: SubscriptionBatchRequest):
+    result = subscription_service.fetch_recent_notes(
+        channel_url=data.channel_url,
+        count=data.count,
+        model_name=data.model_name,
+        provider_id=data.provider_id,
+        quality=data.quality,
+        style=data.style,
+        extras=data.extras,
+    )
+    return R.success(result)
+
+
+@router.post("/subscription/merge_export")
+def merge_subscription_notes(data: SubscriptionMergeRequest):
+    result = subscription_service.merge_and_summarize(
+        start_date=data.start_date,
+        end_date=data.end_date,
+        channel_url=data.channel_url,
+        summarize=data.summarize,
+        model_name=data.model_name,
+        provider_id=data.provider_id,
+    )
+    return R.success(result)
