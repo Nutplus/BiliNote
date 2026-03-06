@@ -46,6 +46,8 @@ BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、Y
 - 可选插入截图（自动截取）
 - 可选内容跳转链接（关联原视频）
 - 任务记录与历史回看
+- 新增订阅能力：可按频道一键拉取最新视频或指定数量视频并生成笔记
+- 新增订阅笔记二次汇总：支持按日期范围合并导出并进行 AI 提炼
 
 ## 📸 截图预览
 ![screenshot](./doc/image1.png)
@@ -72,6 +74,12 @@ pip install -r requirements.txt
 python main.py
 ```
 
+或使用项目脚本一键安装依赖：
+
+```bash
+./scripts/install_and_check.sh
+```
+
 ### 3. 启动前端（Vite + React）
 
 ```bash
@@ -81,6 +89,18 @@ pnpm dev
 ```
 
 访问：`http://localhost:5173`
+
+### 4. 一键运行（前后端同时）
+
+```bash
+./scripts/run_all.sh
+```
+
+### 5. 订阅增强接口（YouTube 示例）
+
+- 一键拉取订阅频道最新视频并生成笔记：`POST /api/subscription/pull_latest`
+- 一键抓取频道最近 N 条视频并生成笔记：`POST /api/subscription/fetch_recent`
+- 按日期范围合并导出订阅笔记并二次总结：`POST /api/subscription/merge_export`
 
 ## ⚙️ 依赖说明
 ### 🎬 FFmpeg
